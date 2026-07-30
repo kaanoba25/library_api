@@ -17,6 +17,17 @@ func NewUserHandler(service *service.UserService) *UserHandler {
 	return &UserHandler{service: service}
 }
 
+
+// Register godoc
+// @Summary Register a new user
+// @Description Creates a new user account with member or admin role
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param request body models.RegisterRequest true "Register Request"
+// @Success 201 {object} models.AuthResponse
+// @Failure 400 {object} map[string]string
+// @Router /auth/register [post]
 func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 	var req models.RegisterRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -33,6 +44,17 @@ func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 	utils.RespondWithJSON(w, http.StatusCreated, res)
 }
 
+
+// Login godoc
+// @Summary Authenticate user
+// @Description Logs in user with email and password to return a JWT token
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param request body models.LoginRequest true "Login Request"
+// @Success 200 {object} models.AuthResponse
+// @Failure 401 {object} map[string]string
+// @Router /auth/login [post]
 func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 	var req models.LoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {

@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"os"
 
+	_ "github.com/kaanoba25/library_api/docs"
+
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
 	"github.com/kaanoba25/library_api/config"
@@ -13,6 +15,8 @@ import (
 	"github.com/kaanoba25/library_api/middleware"
 	"github.com/kaanoba25/library_api/repository"
 	"github.com/kaanoba25/library_api/service"
+
+	httpSwagger "github.com/swaggo/http-swagger"
 )
 
 func main() {
@@ -39,6 +43,9 @@ func main() {
 	r := mux.NewRouter()
 	r.Use(middleware.JSONContentTypeMiddleware)
 	r.Use(middleware.LoggerMiddleware)
+
+	// SWAGGER UI ENDPOINT
+	r.PathPrefix("/swagger/").Handler(httpSwagger.WrapHandler)
 
 	// Public Routes
 	r.HandleFunc("/api/auth/register", userHandler.Register).Methods("POST")
