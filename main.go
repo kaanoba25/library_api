@@ -18,21 +18,30 @@ import (
 func main() {
 	_ = godotenv.Load()
 
-	// Initialize database
 	db := config.InitDB()
 	defer db.Close()
 
-	// Setup dependency injection
+	// Repositories
 	bookRepo := repository.NewBookRepository(db)
-	bookService := service.NewBookService(bookRepo)
-	bookHandler := handler.NewBookHandler(bookService)
+	userRepo := repository.NewUserRepository(db)
 
-	// Setup router & global middlewares
+	// Services
+	bookService := service.NewBookService(bookRepo)
+	userService := service.NewUserService(userRepo)
+
+	// Handlers
+	bookHandler := handler.NewBookHandler(bookService)
+	userHandler := handler.NewUserHandler(userService)
+
 	r := mux.NewRouter()
 	r.Use(middleware.JSONContentTypeMiddleware)
 	r.Use(middleware.LoggerMiddleware)
 
-	// Routes
+	// Auth Routes
+	r.HandleFunc("/api/auth/register", userHandler.Register).Methods("POST")
+	r.HandleFunc("/api/auth/login", userHandler.Login).Methods("POST")
+
+	// Book Routes
 	r.HandleFunc("/api/books", bookHandler.GetAll).Methods("GET")
 	r.HandleFunc("/api/books/{id}", bookHandler.GetByID).Methods("GET")
 	r.HandleFunc("/api/books", bookHandler.Create).Methods("POST")

@@ -51,18 +51,29 @@ func getEnv(key, defaultValue string) string {
 }
 
 func createTables(db *sql.DB) {
-	query := `
-	CREATE TABLE IF NOT EXISTS books (
-		id SERIAL PRIMARY KEY,
-		title VARCHAR(255) NOT NULL,
-		author VARCHAR(255) NOT NULL,
-		isbn VARCHAR(50) UNIQUE NOT NULL,
-		total_copies INT NOT NULL DEFAULT 1,
-		available_copies INT NOT NULL DEFAULT 1
-	);`
+	queries := []string{
+		`CREATE TABLE IF NOT EXISTS books (
+			id SERIAL PRIMARY KEY,
+			title VARCHAR(255) NOT NULL,
+			author VARCHAR(255) NOT NULL,
+			isbn VARCHAR(50) UNIQUE NOT NULL,
+			total_copies INT NOT NULL DEFAULT 1,
+			available_copies INT NOT NULL DEFAULT 1
+		);`,
+		`CREATE TABLE IF NOT EXISTS users (
+			id SERIAL PRIMARY KEY,
+			full_name VARCHAR(255) NOT NULL,
+			email VARCHAR(255) UNIQUE NOT NULL,
+			password VARCHAR(255) NOT NULL,
+			role VARCHAR(20) NOT NULL DEFAULT 'member',
+			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+		);`,
+	}
 
-	_, err := db.Exec(query)
-	if err != nil {
-		log.Fatalf("Failed to create tables: %v", err)
+	for _, query := range queries {
+		_, err := db.Exec(query)
+		if err != nil {
+			log.Fatalf("Failed to create table: %v", err)
+		}
 	}
 }
