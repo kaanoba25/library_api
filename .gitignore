@@ -1,0 +1,11 @@
+# Binary files
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+main
+
+# IDEs
+.vscode/
+.idea/
