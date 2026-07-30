@@ -7,23 +7,27 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/kaanoba25/library_api/models"
-	"github.com/kaanoba25/library_api/services"
+	"github.com/kaanoba25/library_api/service"
+
 	"github.com/kaanoba25/library_api/utils"
 )
 
 type BookHandler struct {
-	service *services.BookService
+	service *service.BookService
 }
 
 // Constructor
-func NewBookHandler(service *services.BookService) *BookHandler {
+func NewBookHandler(service *service.BookService) *BookHandler {
 	return &BookHandler{service: service}
 }
 
 // Methods
-func (b *BookHandler) GetAll(w http.ResponseWriter, r *http.Request) {
-	books := b.service.GetAllBooks()
-
+func (h *BookHandler) GetAll(w http.ResponseWriter, r *http.Request) {
+	books, err := h.service.GetAllBooks()
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
 	utils.RespondWithJSON(w, http.StatusOK, books)
 }
 

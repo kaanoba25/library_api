@@ -1,33 +1,36 @@
 package main
 
 import (
-	_ "fmt"
 	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/kaanoba25/library_api/config"
 	"github.com/kaanoba25/library_api/handler"
 	"github.com/kaanoba25/library_api/middleware"
 	"github.com/kaanoba25/library_api/repository"
-	"github.com/kaanoba25/library_api/services"
+	"github.com/kaanoba25/library_api/service"
 )
 
 func main() {
-	bookRepo := repository.NewBookRepository()
-	bookService := services.NewBookService(bookRepo)
+	// 1. Veritabanı Bağlantısı
+	db := config.InitDB()
+	defer db.Close()
+
+	// 2. Katmanlar (Dependency Injection)
+	bookRepo := repository.NewBookRepository(db)
+	bookService := service.NewBookService(bookRepo)
 	bookHandler := handler.NewBookHandler(bookService)
 
 	r := mux.NewRouter()
 
-	// Global middleware
 	r.Use(middleware.JSONContentTypeMiddleware)
 	r.Use(middleware.LoggerMiddleware)
 
-	// Routes
 	r.HandleFunc("/api/books", bookHandler.GetAll).Methods("GET")
 	r.HandleFunc("/api/books/{id}", bookHandler.GetByID).Methods("GET")
 	r.HandleFunc("/api/books", bookHandler.Create).Methods("POST")
 
-	log.Println("Library API working on http://localhost:8080")
+	log.Println("Library API (PostgreSQL) 8080 portunda çalışıyor...")
 	log.Fatal(http.ListenAndServe(":8080", r))
 }
