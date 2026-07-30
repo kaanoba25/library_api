@@ -68,6 +68,15 @@ func createTables(db *sql.DB) {
 			role VARCHAR(20) NOT NULL DEFAULT 'member',
 			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 		);`,
+		`CREATE TABLE IF NOT EXISTS loans (
+			id SERIAL PRIMARY KEY,
+			user_id INT REFERENCES users(id) ON DELETE CASCADE,
+			book_id INT REFERENCES books(id) ON DELETE CASCADE,
+			borrowed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+			due_date TIMESTAMP NOT NULL,
+			returned_at TIMESTAMP,
+			status VARCHAR(20) NOT NULL DEFAULT 'borrowed'
+		);`,
 	}
 
 	for _, query := range queries {

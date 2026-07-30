@@ -24,33 +24,39 @@ func main() {
 	// Repositories
 	bookRepo := repository.NewBookRepository(db)
 	userRepo := repository.NewUserRepository(db)
+	loanRepo := repository.NewLoanRepository(db)
 
 	// Services
 	bookService := service.NewBookService(bookRepo)
 	userService := service.NewUserService(userRepo)
+	loanService := service.NewLoanService(loanRepo)
 
 	// Handlers
 	bookHandler := handler.NewBookHandler(bookService)
 	userHandler := handler.NewUserHandler(userService)
+	loanHandler := handler.NewLoanHandler(loanService)
 
 	r := mux.NewRouter()
 	r.Use(middleware.JSONContentTypeMiddleware)
 	r.Use(middleware.LoggerMiddleware)
 
-	// Public Auth Routes
+	// Public Routes
 	r.HandleFunc("/api/auth/register", userHandler.Register).Methods("POST")
 	r.HandleFunc("/api/auth/login", userHandler.Login).Methods("POST")
-
-	// Public Book Routes
 	r.HandleFunc("/api/books", bookHandler.GetAll).Methods("GET")
 	r.HandleFunc("/api/books/{id}", bookHandler.GetByID).Methods("GET")
 
-	// Protected Admin Routes
-	protected := r.PathPrefix("/api").Subrouter()
-	protected.Use(middleware.AuthMiddleware)
-	protected.Use(middleware.RequireRole("admin"))
+	// Protected Routes (All Logged-in Users)
+	userProtected := r.PathPrefix("/api").Subrouter()
+	userProtected.Use(middleware.AuthMiddleware)
+	userProtected.HandleFunc("/loans/borrow", loanHandler.Borrow).Methods("POST")
+	userProtected.HandleFunc("/loans/return/{id}", loanHandler.Return).Methods("POST")
 
-	protected.HandleFunc("/books", bookHandler.Create).Methods("POST")
+	// Protected Admin Routes
+	adminProtected := r.PathPrefix("/api").Subrouter()
+	adminProtected.Use(middleware.AuthMiddleware)
+	adminProtected.Use(middleware.RequireRole("admin"))
+	adminProtected.HandleFunc("/books", bookHandler.Create).Methods("POST")
 
 	port := os.Getenv("PORT")
 	if port == "" {
