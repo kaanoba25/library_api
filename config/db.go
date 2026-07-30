@@ -2,31 +2,52 @@ package config
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
+	"os"
 
-	_ "github.com/lib/pq" // Driver'ın init fonksiyonunu çalıştırmak için anonim import
+	"github.com/joho/godotenv"
+	_ "github.com/lib/pq"
 )
 
 func InitDB() *sql.DB {
-	// Bağlantı cümlesi (Connection String)
-	connStr := "host=localhost port=5432 user=postgres password=covboy dbname=library_api sslmode=disable"
+	// Load environment variables from .env file
+	if err := godotenv.Load(); err != nil {
+		log.Println("Warning: No .env file found, reading from system env")
+	}
+
+	connStr := fmt.Sprintf(
+		"host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
+		getEnv("DB_HOST", "localhost"),
+		getEnv("DB_PORT", "5432"),
+		getEnv("DB_USER", "postgres"),
+		getEnv("DB_PASSWORD", "secret"),
+		getEnv("DB_NAME", "library_db"),
+		getEnv("DB_SSLMODE", "disable"),
+	)
 
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
-		log.Fatalf("Veritabanı sürücüsü başlatılamadı: %v", err)
+		log.Fatalf("Failed to initialize DB driver: %v", err)
 	}
 
-	// Bağlantıyı test edelim
 	if err := db.Ping(); err != nil {
-		log.Fatalf("Veritabanına bağlanılamadı (PostgreSQL açık mı?): %v", err)
+		log.Fatalf("Failed to connect to database: %v", err)
 	}
 
-	log.Println("PostgreSQL veritabanına başarıyla bağlanıldı!")
+	log.Println("Successfully connected to PostgreSQL database")
 
-	// Tablomuzu otomatik oluşturalım
 	createTables(db)
 
 	return db
+}
+
+// getEnv fetches an env variable or returns a fallback default value
+func getEnv(key, defaultValue string) string {
+	if value, exists := os.LookupEnv(key); exists {
+		return value
+	}
+	return defaultValue
 }
 
 func createTables(db *sql.DB) {
@@ -42,6 +63,6 @@ func createTables(db *sql.DB) {
 
 	_, err := db.Exec(query)
 	if err != nil {
-		log.Fatalf("Tablo oluşturulurken hata: %v", err)
+		log.Fatalf("Failed to create tables: %v", err)
 	}
 }

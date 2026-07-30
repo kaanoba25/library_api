@@ -1,10 +1,9 @@
-# Binary files
-*.exe
-*.exe~
-*.dll
-*.so
-*.dylib
+# Binary
 main
+*.exe
+
+# Environment
+.env
 
 # IDEs
 .vscode/
