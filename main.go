@@ -37,14 +37,20 @@ func main() {
 	r.Use(middleware.JSONContentTypeMiddleware)
 	r.Use(middleware.LoggerMiddleware)
 
-	// Auth Routes
+	// Public Auth Routes
 	r.HandleFunc("/api/auth/register", userHandler.Register).Methods("POST")
 	r.HandleFunc("/api/auth/login", userHandler.Login).Methods("POST")
 
-	// Book Routes
+	// Public Book Routes
 	r.HandleFunc("/api/books", bookHandler.GetAll).Methods("GET")
 	r.HandleFunc("/api/books/{id}", bookHandler.GetByID).Methods("GET")
-	r.HandleFunc("/api/books", bookHandler.Create).Methods("POST")
+
+	// Protected Admin Routes
+	protected := r.PathPrefix("/api").Subrouter()
+	protected.Use(middleware.AuthMiddleware)
+	protected.Use(middleware.RequireRole("admin"))
+
+	protected.HandleFunc("/books", bookHandler.Create).Methods("POST")
 
 	port := os.Getenv("PORT")
 	if port == "" {
